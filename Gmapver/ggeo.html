@@ -1,28 +1,101 @@
-<!DOCTYPE html "-//W3C//DTD XHTML 1.0 Strict//EN" 
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html>
   <head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-    <title>Google Maps API サンプル</title>
-	 <script type="text/javascript"
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0,user-scalable=no">
+    <title>現在地の表示</title>
+
+     <script type="text/javascript" src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+		 <script type="text/javascript"
       src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCzMMNeLHBtp5ZhsG5Tg8amYWNwo4wfQtw&sensor=true">
     </script>
-	<script type="text/javascript">
-    function initialize() {
-      var latlng = new google.maps.LatLng(35.709984,139.810703);
-      var opts = {
-        zoom: 15,
-        center: latlng,
-        mapTypeId: google.maps.MapTypeId.ROADMAP
-      };
-      var map = new google.maps.Map(document.getElementById("map_canvas"), opts);
-    }
-    </script>
 
+	<script>
+  $.get(
+    "http://lodcu.cs.chubu.ac.jp/SparqlEPCU/api/FS2", // エンドポイント
+    {query:"PREFIX schema: <http://schema.org/>
+PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dcterm: <http://purl.org/dc/terms/>
+prefix foaf: <http://xmlns.com/foaf/0.1/> 
+prefix dcterm: <http://purl.org/dc/terms/> 
+prefix owl: <http://www.w3.org/2002/07/owl#> 
+prefix xsd: <http://www.w3.org/2001/XMLSchema#> 
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+select 
+distinct
+?title ?start ?lat ?long 
+?description ?fish
+where 
+{
+?s ?p ?o;
+rdfs:label ?title;
+dcterm:created ?start;
+dcterm:description ?description;
+schema:fish ?fish;
+geo:lat ?lat;
+geo:long ?long.
+}"}, // クエリ(説明文と画像を最大20件まで要求)
+    success,  // 返ってきたデータを処理する関数
+    "json"  // 返ってきてほしいデータの形式
+  );
+
+  // getリクエストで得たdataを処理する
+  function success(data) {
+    // 文字列に変換
+    var html = JSON.stringify(data);
+    // そのまま表示
+    $("#disp").html(html);
+  }
+
+  </script>
+
+    <script type="text/javascript">
+        function initialize(){
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(success, error);
+			}else{
+			message = "本ブラウザではGeolocationが使えません";
+			document.getElementById("map_canvas").innerHTML= message;
+			}
+        }
+        function success(position){
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+			var latlng = new google.maps.LatLng(lat,lng)
+			var iwopts = {
+  content: 'げんざいち？',
+  positon: latlng
+};
+
+			var infowindow = new google.maps.InfoWindow(iwopts);
+            var msg = document.getElementById("msg");
+            msg.innerHTML = "あなたの現在地を表示" + "<div>緯度:" + lat + "<br/>" + " 経度:" + lng + "</div>" + "<div>" + (new Date()).toString() + "</div>";
+            
+            var myOptions = {
+                zoom: 16,
+                center: latlng,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+            var googlemap = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+            var marker = new google.maps.Marker({
+                position: latlng,
+                map: googlemap
+            });
+			var infowindow = new google.maps.InfoWindow(iwopts);
+
+			infowindow.open(googlemap,marker);
+        }
+        function error(e){
+            alert("エラーが発生しました - " + e.message);
+        }
+    </script>    
   </head>
   <body onload="initialize()">
-    <p>自宅の地図です。</p>
-	
-    <div id="map_canvas" style="width:500px; height:300px"></div>
+      <div id="msg"></div>      
+    <div id="map_canvas" style="width:640px; height:480px;"></div>
   </body>
 </html>
+
+

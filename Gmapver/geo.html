@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="initial-scale=1.0,user-scalable=no">
     <title>現在地の表示</title>
+
+      <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+      <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+      <script type="text/javascript" id="sgvzlr_script" src="http://sgvizler.googlecode.com/svn/release/0.5/sgvizler.js"></script>
+      <script type="text/javascript">
+sgvizler.option.namespace.dbpo = 'http://dbpedia.org/ontology/';
+sgvizler.option.namespace.geo = 'http://www.w3.org/2003/01/geo/wgs84_pos#';
+sgvizler.option.namespace.dct = 'http://purl.org/dc/terms/';
+$(document).ready(sgvizler.go());
+      </script>
+
 		 <script type="text/javascript"
       src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCzMMNeLHBtp5ZhsG5Tg8amYWNwo4wfQtw&sensor=true">
     </script>
@@ -46,6 +57,36 @@
         }
         function error(e){
             alert("エラーが発生しました - " + e.message);
+        }
+        function doRequest(){
+          var url = "http://lodcu.cs.chubu.ac.jp/SparqlEPCU/api/FS2"
+
+          $.ajax({ 
+      dataType: "jsonp",
+      url: queryUrl,
+      success: function(data) {     
+        
+        // get the table element
+        var table = $("#results");              
+        
+        // get the sparql variables from the 'head' of the data.
+        var headerVars = data.head.vars; 
+   
+        // using the vars, make some table headers and add them to the table;
+        var trHeaders = getTableHeaders(headerVars);
+        table.append(trHeaders);  
+        
+        // grab the actual results from the data.                                          
+        var bindings = data.results.bindings;
+                                                 
+        // for each result, make a table row and add it to the table.
+        for(rowIdx in bindings){
+          table.append(getTableRow(headerVars, bindings[rowIdx]));
+        }
+        
+        drawMap(data);
+      }
+    });               
         }
     </script>    
   </head>
