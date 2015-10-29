@@ -10,9 +10,9 @@
     // SPARQL 検索を行う query() 関数を定義
     function query() {
       // HTML ページの <input id="endpoint" type="text"> から値を取得
-      var endpoint = $("#endpoint").val()
+      var endpoint = $("#endpoint").val();
       // HTML ページの <textarea id="sparql"> から値を取得
-      var sparql = $("#sparql").val()
+      var sparql = $("#sparql").val();
       // AJAX により SPARQL クエリを実行
       $.ajax({
         // SPARQL 検索を呼び出す URL の指定
@@ -26,26 +26,30 @@
     // SPARQL 検索結果の表示を行う render() 関数を定義
     function render(json) {
       // SPARQL 検索の結果の JSON をデバッグ用にコンソールへ表示
-      console.log(json)
+      console.log(json);
       // HTML の表を生成（クラスは Bootstrap 用のデザイン指定）
-      var table = $("<table>").addClass("table table-bordered table-hover")
+      var table = $("<table>").addClass("table table-bordered table-hover");
       // SPARQL 検索の変数名を表のヘッダに表示
-      var vars = json.head.vars
-      var row = $("<tr>")
+      var vars = json.head.vars;
+      var row = $("<tr>");
       $.each(vars, function() {
-        row.append($("<th>").text(this))
+        row.append($("<th>").text(this));
       })
-      table.append(row)
+      table.append(row);
       // SPARQL 検索の結果を１件ずつ表の行に追加
       $.each(json.results.bindings, function(i, item) {
-        var row = $("<tr>")
+        var row = $("<tr>");
         $.each(vars, function() {
-          row.append($("<td>").text(item[this].value))
+  if(item[this] != null){
+          row.append($("<td>").text(item[this].value));
+        }else{
+          row.append("a");
+        }
         })
-        table.append(row)
+        table.append(row);
       })
       // 完成した表を HTML に差し込む（クラスは Bootstrap 用の幅指定）
-      $("#result").addClass("span8").append(table)
+      $("#result").addClass("span8").append(table);
     }
     </script>
     <!-- 表の変数名１文字目を大文字にするための設定 -->
@@ -69,7 +73,31 @@
       </form>
       <!-- 検索に利用する SPARQL の指定 -->
       <textarea id="sparql" class="span9" rows=20>
-select * where {?s ?p ?o} LIMIT 100
+       <!-- select * where {?s ?p ?o} LIMIT 100
+        -->
+prefix schema: <http://schema.org/> 
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+prefix foaf: <http://xmlns.com/foaf/0.1/>
+prefix dcterm: <http://purl.org/dc/terms/>
+prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+prefix owl: <http://www.w3.org/2002/07/owl#>
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+
+select 
+distinct
+?title ?lat ?long 
+?description ?fish
+where 
+{
+?s ?p ?o;
+rdfs:title ?title;
+dcterm:description ?description;
+rdfs:label ?fish;
+geo:lat ?lat;
+geo:long ?long.
+}
       </textarea>
     </div>
     <!-- 結果を表示するためのプレースホルダ -->
